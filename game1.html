@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Flappy Bird</title>
+    <style type="text/css">
+        /*beri style pada semua elemen*/
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /*beri style pada body*/
+        body {
+            height: 100vh;
+            width: 100vw;
+        }       
+        /*beri style pada background*/
+        .background {
+            height: 100vh;
+            width: 100vw;
+            background-color: skyblue;
+        }
+        /*beri style pada elemen burung*/
+        .bird {
+            height: 100px;
+            width: 160px;
+            position: fixed;
+            top: 40vh;
+            left: 30vw;
+            z-index: 100;
+        }
+        /*beri style pada elemen kelas pipe_sprite*/
+        .pipe_sprite {
+            position: fixed;
+            top: 40vh;
+            left: 100vw;
+            height: 70vh;
+            width: 6vw;
+            background-color: green;
+        }
+        /*beri style pada elemen kelas message */
+        .message {
+            position: fixed;
+            z-index: 10;
+            height: 10vh;
+            font-size: 10vh;
+            font-weight: 100;
+            color: black;
+            top: 12vh;
+            left: 20vw;
+            text-align: center;
+        }
+        /*beri style pada elemen score */
+        .score {
+            position: fixed;
+            z-index: 10;
+            height: 10vh;
+            font-size: 10vh;
+            font-weight: 100;
+            color: goldenrod;
+            top: 0;
+            left: 0;
+        }
+        /*beri style pada score_val*/
+        .score_val {
+            color: gold;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <img class="bird" src="bird.png" alt="bird-img">
+    <div class="message">
+        Press Enter To Start Game
+    </div>
+    <div class="score">
+        <span class="score_title"></span>
+        <span class="score_val"></span>
+    </div>
+    <script type="text/javascript">
+    // Kecepatan background bergulir
+    let move_speed = 3;
+    
+    // Nilai gravitasi
+    let gravity = 0.5;
+    
+    // Mendefinisikan elemen burung
+    let bird = document.querySelector('.bird');
+    let bird_props = bird.getBoundingClientRect();
+    let background =
+    document.querySelector('.background')
+            .getBoundingClientRect();
+    
+    // Mendefinisikan elemen score
+    let score_val =
+        document.querySelector('.score_val');
+    let message =
+        document.querySelector('.message');
+    let score_title =
+        document.querySelector('.score_title');
+    
+    // Inisial start game
+    let game_state = 'Start';
+    
+    // Inisialisasi pada saat tombol ditekan
+    document.addEventListener('keydown', (e) => {
+    
+    // Game akan dimulai pada saat menekan tombol enter
+    if (e.key == 'Enter' &&
+        game_state != 'Play') {
+        document.querySelectorAll('.pipe_sprite').forEach((e) => {
+        e.remove();
+        });
+
+        bird.style.top = '40vh';
+        game_state = 'Play';
+        message.innerHTML = '';
+        score_title.innerHTML = 'Score : ';
+        score_val.innerHTML = '0';
+        play();
+        }
+    });
+    function play() {
+    function move() {
+      
+    // Mendeteksi jika game telah selesai
+    if (game_state != 'Play') return;
+      
+    // Mendeklarasikan elemen pipa
+    let pipe_sprite = document.querySelectorAll('.pipe_sprite');
+    pipe_sprite.forEach((element) => {
+        
+    let pipe_sprite_props = element.getBoundingClientRect();
+    bird_props = bird.getBoundingClientRect();
+        
+    // Hapus elemen pipa jika sudah keluar layar
+    if (pipe_sprite_props.right <= 0) {
+        element.remove();
+      } else {
+        // Mendeteksi tabrakan burung dengan pipa
+        if (
+          bird_props.left < pipe_sprite_props.left +
+          pipe_sprite_props.width &&
+          bird_props.left +
+          bird_props.width > pipe_sprite_props.left &&
+          bird_props.top < pipe_sprite_props.top +
+          pipe_sprite_props.height &&
+          bird_props.top +
+          bird_props.height > pipe_sprite_props.top
+        ) {
+            
+          // Akhiri game jika terjadi tabrakan
+          game_state = 'End';
+          message.innerHTML = 'Press Enter To Restart';
+          message.style.left = '28vw';
+          return;
+        } else {
+          // Meningkatkan score jika berhasil melewati pipa
+          if (
+            pipe_sprite_props.right < bird_props.left &&
+            pipe_sprite_props.right + 
+            move_speed >= bird_props.left &&
+            element.increase_score == '1'
+          ) {
+            score_val.innerHTML = +score_val.innerHTML + 10;
+          }
+          element.style.left = 
+            pipe_sprite_props.left - move_speed + 'px';
+        }
+      }
+    });
+  
+        requestAnimationFrame(move);
+      }
+      requestAnimationFrame(move);
+      
+      let bird_dy = 0;
+      function apply_gravity() {
+        if (game_state != 'Play') return;
+        bird_dy = bird_dy + gravity;
+        document.addEventListener('keydown', (e) => {
+          if (e.key == 'ArrowUp' || e.key == ' ') {
+            bird_dy = -7.6;
+          }
+        });
+      
+        // deteksi tabrakan burung dengan margin atas bawah
+      
+        if (bird_props.top <= 0 ||
+            bird_props.bottom >= background.bottom) {
+          game_state = 'End';
+          message.innerHTML = 'Press Enter To Restart';
+          message.style.left = '28vw';
+          return;
+        }
+        bird.style.top = bird_props.top + bird_dy + 'px';
+        bird_props = bird.getBoundingClientRect();
+        requestAnimationFrame(apply_gravity);
+      }
+      requestAnimationFrame(apply_gravity);
+      
+      let pipe_seperation = 0;
+        
+      // jarak celah dua pipa atas bawah
+      let pipe_gap = 40;
+      function create_pipe() {
+        if (game_state != 'Play') return;
+          
+        // buat jarak antar pipa jika pipa sebelumnya sudah terlampaui
+        if (pipe_seperation > 115) {
+          pipe_seperation = 0
+            
+          let pipe_posi = Math.floor(Math.random() * 43) + 8;
+          let pipe_sprite_inv = document.createElement('div');
+          pipe_sprite_inv.className = 'pipe_sprite';
+          pipe_sprite_inv.style.top = pipe_posi - 70 + 'vh';
+          pipe_sprite_inv.style.left = '100vw';
+            
+          // tambahkan elemen pipa
+          document.body.appendChild(pipe_sprite_inv);
+          let pipe_sprite = document.createElement('div');
+          pipe_sprite.className = 'pipe_sprite';
+          pipe_sprite.style.top = pipe_posi + pipe_gap + 'vh';
+          pipe_sprite.style.left = '100vw';
+          pipe_sprite.increase_score = '1';
+            
+          
+          document.body.appendChild(pipe_sprite);
+        }
+        pipe_seperation++;
+        requestAnimationFrame(create_pipe);
+      }
+      requestAnimationFrame(create_pipe);
+    }
+    </script>
+</body>
+</html>
